@@ -1,26 +1,45 @@
 import { Contact } from "../Contact/Contact";
 import { useSelector } from "react-redux";
 import s from "./ContactList.module.css";
+import {
+  selectError,
+  selectFilteredContacts,
+  selectLoading,
+} from "../../redux/contactsSlice";
+import { FadeLoader } from "react-spinners";
 
-const getFilteredContacts = (userContacts, filterValue) => {
-  if (filterValue !== "") {
-    return userContacts.filter((contact) =>
-      contact.name.toLowerCase().includes(filterValue.toLowerCase())
-    );
-  }
-  return userContacts;
+const loaderStyles = {
+  display: "block",
+  margin: "0 auto",
+  marginTop: "30px",
 };
 
 export const ContactList = () => {
-  const userContacts = useSelector((state) => state.contacts.items);
-  const filterValue = useSelector((state) => state.filters.name);
-  const filteredContacts = getFilteredContacts(userContacts, filterValue);
+  const filteredContacts = useSelector(selectFilteredContacts);
+  const isLoading = useSelector(selectLoading);
+  const error = useSelector(selectError);
 
   return (
-    <ul className={s.contactsList}>
-      {filteredContacts.map((contact) => (
-        <Contact key={contact.id} contact={contact} />
-      ))}
-    </ul>
+    <>
+      {isLoading && (
+        <FadeLoader
+          color="#4d02b9"
+          loading={isLoading}
+          className="loader"
+          cssOverride={loaderStyles}
+          size={20}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      )}
+      {!isLoading && !error && filteredContacts.length > 0 && (
+        <ul className={s.contactsList}>
+          {filteredContacts.map((contact) => (
+            <Contact key={contact.id} contact={contact} />
+          ))}
+        </ul>
+      )}
+      {error && !isLoading && <p className={s.error}>{error}</p>}
+    </>
   );
 };
